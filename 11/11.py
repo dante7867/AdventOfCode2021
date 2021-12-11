@@ -39,7 +39,7 @@ while not common or step < 100:
             if octo[y][x] > 9:
                 flashes +=  1
                 octo[y][x] = 0
-    # p2 - check for simultanous flash
+    # p2 - check for simultaneous flash
     for y, c in enumerate(octo):
         for x, r in enumerate(octo[y]):
             if octo[y][x] != 0:
