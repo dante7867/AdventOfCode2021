@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 # https://adventofcode.com/2021/day/10
+
+
 opens = ['(','[','{','<']
 closures = [')',']','}','>']
 
@@ -43,3 +45,4 @@ def p1and2(lines):
 with open('i.txt','r') as f:
     lines = [l.strip() for l in f.readlines()]
     p1and2(lines)
+

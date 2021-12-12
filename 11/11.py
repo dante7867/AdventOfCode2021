@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # https://adventofcode.com/2021/day/11
 
 
@@ -52,5 +53,4 @@ while not common or step < 100:
         print('p1 =', flashes)
     if common:
         print('p2 =', step)
-
 

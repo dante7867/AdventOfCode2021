@@ -1,19 +1,8 @@
-from collections import Counter
+#!/usr/bin/env python3
+# https://adventofcode.com/2021/day/12
+
+from collections import Counter, defaultdict
 from copy import deepcopy
-
-
-connected = {}
-with open('i.txt','r') as f:
-    for line in f.readlines():
-        line = line.strip().split('-')
-        if line[0] not in connected:
-            connected[line[0]] = set([line[1]])
-        else:
-            connected[line[0]].add(line[1])
-        if line[1] not in connected:
-            connected[line[1]] = set([line[0]])
-        else:
-            connected[line[1]].add(line[0])
 
 
 def walk(c, h, visited, allowed):
@@ -29,7 +18,16 @@ def walk(c, h, visited, allowed):
             else: 
                 walk(p, h + ',' + p,deepcopy(visited), deepcopy(allowed))
 
+
+connected = defaultdict(set)
+with open('i.txt','r') as f:
+    for line in f.readlines():
+        line = line.strip().split('-')
+        connected[line[0]].add(line[1])
+        connected[line[1]].add(line[0])
+
 paths = set()
+
 walk('start', 'start', Counter(), False)
 print(f'p1 = {len(paths)}')
 
