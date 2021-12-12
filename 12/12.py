@@ -8,12 +8,11 @@ def walk(c, visited, allowed):
     global paths
 
     if c.islower():
-        visited[c] += 1
-    if allowed:
-        if 2 in visited.values():
+        visited.append(c)
+        if visited.count(c) == 2:
             allowed = False
     for p in connected[c]:
-        if p.isupper() or (visited[p] < 1 or allowed) and p != 'start':
+        if p.isupper() or (allowed or p not in visited) and p != 'start':
             if p == 'end':
                 paths += 1
             else: 
@@ -28,10 +27,10 @@ with open('i.txt','r') as f:
         connected[line[1]].add(line[0])
 
 paths = 0
-walk('start', Counter(), False)
+walk('start', [], False)
 print('p1 =', paths)
 
 paths = 0
-walk('start', Counter(), True)
+walk('start', [], True)
 print('p2 =', paths)
 
