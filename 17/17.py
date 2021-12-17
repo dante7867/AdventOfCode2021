@@ -24,7 +24,7 @@ def step(x,y, vx,vy):
     return x, y,vx,vy
 
 
-def estabish_min_horizontal_speed(x1, x2):
+def estabish_min_horizontal_speed(x1):
     speed = 0
     while True:
         speed += 1
@@ -37,7 +37,7 @@ def p1and2(x1, x2, y1, y2):
     max_height_for_all_hitting_angles = 0
     number_of_hitting_angles = 0
     max_vy_that_hits = 0
-    for start_vx in range(estabish_min_horizontal_speed(x1,x2),x2+1):
+    for start_vx in range(estabish_min_horizontal_speed(x1),x2+1):
         for start_vy in range(y1,abs(y1)+1):
             x,y = 0,0
             vx = start_vx
@@ -45,6 +45,7 @@ def p1and2(x1, x2, y1, y2):
             
             hit = False
             max_height = 0
+
             while x <= x2 and y >= y1 and not hit:
                 x,y,vx,vy = step(x,y,vx,vy)
                 hit = x1<=x<=x2 and y1<=y<=y2
