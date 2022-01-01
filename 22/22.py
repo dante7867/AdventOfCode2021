@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 # https://adventofcode.com/2021/day/22
-
 import re
 
 
@@ -27,14 +26,11 @@ def p1(cmds):
                         on.add(tuple([x,y,z]))
                     if ins == 'off':
                         on.discard(tuple([x,y,z]))
-
+    
     print('p1 =', len(on))
 
 
-
-#p1(cmds)
-
-class Cube():
+class Cuboid():
     def __init__(self,x1,x2,y1,y2,z1,z2,toggle = 'on'):
         self.x1 = x1
         self.x2 = x2
@@ -42,10 +38,9 @@ class Cube():
         self.y2 = y2
         self.z1 = z1
         self.z2 = z2
-        self.valid = False
-        self.toggle = toggle
-        self.pts = (self.x2-self.x1 + 1) * (self.y2-self.y1 + 1) * (self.z2-self.z1 + 1)
-
+        self.toggle = True if toggle == 'on' else False
+        
+        self.valid = False        
         if x2 >= x1 and y2 >= y1 and z2 >= z1:
             self.valid = True
 
@@ -55,19 +50,21 @@ class Cube():
 
 
     def __repr__(self):
-        return f"Cube {self.x1}..{self.x2}, {self.y1}..{self.y2}, {self.z1}..{self.z2}, toggle:{self.toggle}, valid: {self.valid}, pts: {self.pts}"
+        return f"Cuboid {self.x1}..{self.x2}, {self.y1}..{self.y2}, {self.z1}..{self.z2}, toggle:{self.toggle}, pts: {self.pts}"
 
-    def __add__(self, cube):
+    def __add__(self, cuboid):
         pass
 
-    def __sub__(self, cube):
-        print('substracting\n', self, '\nminus\n', cube, '\n---------')      
-        a1 = cube.x1
-        a2 = cube.x2
-        b1 = cube.y1
-        b2 = cube.y2
-        c1 = cube.z1
-        c2 = cube.z2
+    def __sub__(self, cuboid):
+        if not self.intersects_with(cuboid):
+            return [self]
+
+        a1 = cuboid.x1
+        a2 = cuboid.x2
+        b1 = cuboid.y1
+        b2 = cuboid.y2
+        c1 = cuboid.z1
+        c2 = cuboid.z2
 
         x1 = self.x1
         x2 = self.x2
@@ -76,100 +73,89 @@ class Cube():
         z1 = self.z1
         z2 = self.z2
 
-        DIFFERENCE = []
-        
+        difference = []
          
-        # top 
-        CUBES.append( Cube(x1, min(a1-1, x2-1), max(b2+1, y1), y2, z1, min(c1-1,z2-1) ) )
-        # top 2 
-        CUBES.append( Cube(x1, min(a1-1, x2-1), max(b2+1, y1), y2, b1, min(b2, z2-1) ) )
-        # top 3
-        CUBES.append( Cube(x1, min(a-1, x2-1), max(b2+1, y1), y2, max(b2+1, z1), z2 ) )
+        #top
+        difference.append( Cuboid(x1, min(a1-1, x2), max(y1, b2+1), y2, z1, min(c1-1,z2) ) )
+        difference.append( Cuboid(x1, min(a1-1, x2), max(y1, b2+1), y2, max(c1, z1), min(c2, z2) ) ) 
+        difference.append( Cuboid(x1, min(a1-1, x2), max(y1, b2+1), y2, max(z1, c2+1), z2) ) 
 
-
-        return DIFFERENCE
+        difference.append( Cuboid( max(x1, a1), min(a2, x2), max(y1, b2+1), y2, z1, min(c1-1,z2) ) )
+        difference.append( Cuboid( max(x1, a1), min(a2, x2), max(y1, b2+1), y2, max(c1, z1), min(c2, z2) ) )
+        difference.append( Cuboid( max(x1, a1), min(a2, x2), max(y1, b2+1), y2, max(c2+1, z1), z2) ) 
         
-    def contains(self, cube):
-        one = self.x1 <= cube.x1 <= self.x2 
-        two = self.x1 <= cube.x2 <= self.x2
-        three = self.y1 <= cube.y1 <= self.y2
-        four = self.y1 <= cube.y2 <= self.y2
-        five = self.z1 <= cube.z1 <= self.z2
-        six = self.z1 <= cube.z2 <= self.z2
-        return one and two and three and four and five and six
+        difference.append( Cuboid( max(x1, a2 + 1), x2, max(y1, b2+1), y2, z1, min(c1-1,z2) ) ) 
+        difference.append( Cuboid( max(x1, a2 + 1), x2, max(y1, b2+1), y2, max(c1, z1), min(c2, z2) ) )
+        difference.append( Cuboid( max(x1, a2 + 1), x2, max(y1, b2+1), y2, max(z1, c2+1), z2) )
+
+        # middle
+        difference.append( Cuboid(x1, min(a1-1, x2), max(y1, b1), min(y2,b2), z1, min(c1-1,z2) ) )
+        difference.append( Cuboid(x1, min(a1-1, x2), max(y1, b1), min(y2,b2), max(c1, z1), min(c2, z2) ) ) 
+        difference.append( Cuboid(x1, min(a1-1, x2), max(y1, b1), min(y2,b2), max(z1, c2+1), z2) )
+
+        difference.append( Cuboid( max(x1, a1), min(a2, x2), max(y1, b1), min(y2,b2), z1, min(c1-1,z2) ) )
+        ###
+        difference.append( Cuboid( max(x1, a1), min(a2, x2), max(y1, b1), min(y2,b2), max(c2+1, z1), z2) ) 
+        
+        difference.append( Cuboid( max(x1, a2 + 1), x2, max(y1, b1), min(y2,b2), z1, min(c1-1,z2) ) ) 
+        difference.append( Cuboid( max(x1, a2 + 1), x2, max(y1, b1), min(y2,b2), max(c1, z1), min(c2, z2) ) )
+        difference.append( Cuboid( max(x1, a2 + 1), x2, max(y1, b1), min(y2,b2), max(z1, c2+1), z2) )
+
+        # bottom
+        difference.append( Cuboid(x1, min(a1-1, x2), y1, min(y2,b1-1), z1, min(c1-1,z2) ) )
+        difference.append( Cuboid(x1, min(a1-1, x2), y1, min(y2,b1-1), max(c1, z1), min(c2, z2) ) ) 
+        difference.append( Cuboid(x1, min(a1-1, x2), y1, min(y2,b1-1), max(z1, c2+1), z2) ) 
+
+        difference.append( Cuboid( max(x1, a1), min(a2, x2), y1, min(y2,b1-1), z1, min(c1-1,z2) ) )
+        difference.append( Cuboid( max(x1, a1), min(a2, x2), y1, min(y2,b1-1), max(c1, z1), min(c2, z2) ) )
+        difference.append( Cuboid( max(x1, a1), min(a2, x2), y1, min(y2,b1-1), max(c2+1, z1), z2) ) 
+        
+        difference.append( Cuboid( max(x1, a2 + 1), x2, y1, min(y2,b1-1), z1, min(c1-1,z2) ) ) 
+        difference.append( Cuboid( max(x1, a2 + 1), x2, y1, min(y2,b1-1), max(c1, z1), min(c2, z2) ) )
+        difference.append( Cuboid( max(x1, a2 + 1), x2, y1, min(y2,b1-1), max(z1, c2+1), z2) )
+        
+
+        difference = [x for x in difference if x.valid]
+        return difference
+        
+
+    def intersects_with(self, cuboid):
+        return self.x2 >= cuboid.x1 and self.x1 <= cuboid.x2 and \
+                self.y2 >= cuboid.y1 and self.y1 <= cuboid.y2 and \
+                self.z2 >= cuboid.z1 and self.z1 <= cuboid.z2
 
 
-def test1():
-    c1 = Cube(4,6,4,6,4,6)
-    c2 = Cube(0,3,0,3,0,3)
-    leftovers = c1-c2
-    su = 0
-    print('*'*30)
-    for l in leftovers:
-        print(l)
-        su += l.points()
-    print('su1', su)
-    print('*'*30)
-def test2():
-    su = 0
-    c3 = Cube(0,5,0,5,0,5)
-    print(c3)
-    c4 = Cube(0,5,2,3,2,3) 
-    print(c4)
-    leftovers = c3-c4
-    print('*'*30)
-    for l in leftovers:
-        print(l)
-        su += l.pts
-    print('su1', su)
-    print('*'*30)
-def test3():
-    su = 0
-    c5 = Cube(0,5,0,5,0,5)
-    print('c5 points', c5.points())
-    leftovers = c5-c5
-    print('*'*30)
-    for l in leftovers:
-        print(l)
-        su += l.points()
-    print('su1', su)
-    print('*'*30)
-def test4():
-    su = 0
-    c6 = Cube(0,5,0,5,0,5)
-    c7 = Cube(-6,-1,0,5,0,5)
-    print(c6)
-    print(c7)
-    print('*'*30)
-    leftovers = c7-c6
-    print('*'*30)
-    for l in leftovers:
-        print(l)
-        su += l.points()
-    print('su1', su)
-    print('*'*30)
-def test5():
-    su = 0
-    c6 = Cube(-20,26,-36,17,-47,7)
-    c7 = Cube(-20,33,-21,23,-26,28)
-    print(c6)
-    print(c7)
-    print('*'*30)
-    leftovers = c7-c6
-    for l1 in leftovers:
-        for l2 in leftovers:
-            if l1 != l2:
-                pass
-    print('*'*30)
-    for l in leftovers:
-        print(l)
-        su += l.points()
-    print('su1', su)
-    print('*'*30)
+def how_many_cubes_are_on(space):
+    count = 0
+    for cuboid in space:
+        count += cuboid.points()
+    return count
 
+def p2(cmds):
+    space = []
+    for cmd in cmds:
+        ins, x1, x2, y1, y2, z1, z2 = cmd
+        cuboid = Cuboid(x1,x2,y1,y2,z1,z2, ins)
 
-#test5()
+        if len(space)==0:
+            space.append(cuboid)
+            continue
 
+        if cuboid.toggle: 
+            on = [cuboid]
+            for s in space:
+                new_on = []
+                for o in on:
+                    new_on += o - s
+                on = new_on
+            space += on
+        else:
+            new_space = []
+            for s in space:
+                new_space += s - cuboid
+            space = new_space
+
+    print('p2 =', how_many_cubes_are_on(space))
 
 with open('i.txt', 'r') as f:
     cmds = []
@@ -182,32 +168,5 @@ with open('i.txt', 'r') as f:
         cmds.append(cmd)
 
 p1(cmds)
+p2(cmds)
 
-"""
-def eval_space(space):
-    su = 0
-    for cube in space:
-        su += cube.points()
-    print('enlighted points:', su)
-    return su
-
-cubes = []
-for cmd in cmds:
-    ins, x1, x2, y1, y2, z1, z2 = cmd
-    if should_skip(x1, x2, y1, y2, z1, z2):
-        continue
-    cube = Cube(x1,x2,y1,y2,z1,z2, ins)
-    if cube.valid:
-        cubes.append(cube)
-
-print('*'*30)
-
-space = []
-diff = cubes[0] - cubes[1]
-for d in diff:
-    print('diff', d)
-eval_space(space)
-"""
-
-
-# 71328
